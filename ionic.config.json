@@ -1,0 +1,7 @@
+{
+  "name": "ionicToDo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
