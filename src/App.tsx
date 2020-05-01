@@ -11,8 +11,8 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { addCircle, list } from 'ionicons/icons';
-import Create from './pages/Create';
-import Todos from './pages/Todos';
+import { connect } from 'react-redux';
+import { setTodos, setTodosKeys } from './redux/todos-reducer';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -32,29 +32,57 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import TodosContainer from './pages/Todos/TodosContainer';
+import CreateContainer from './pages/Create/CreateContainer';
+import axios from 'axios';
+import { TodoType } from './types/types';
+import { AppStateType } from './redux/redux-store';
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route path="/create" component={Create} exact={true} />
-          <Route path="/todos" component={Todos} exact={true} />
-          <Route path="/" render={() => <Redirect to="/todos" />} exact={true} />
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="create" href="/create">
-            <IonIcon icon={addCircle} />
-            <IonLabel>Create</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="todos" href="/todos">
-            <IonIcon icon={list} />
-            <IonLabel>All Todos</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </IonTabs>
-    </IonReactRouter>
-  </IonApp>
-);
+type PropsType = {
+  setTodos: (todos: Array<TodoType>) => void
+  setTodosKeys: (todosKeys: Array<string>) => void
+}
 
-export default App;
+class App extends React.Component<PropsType> {
+
+  componentDidMount() {
+    axios.get(`https://angular-test-calendar-a724b.firebaseio.com/.json`).then(response => {
+        this.props.setTodos(Object.values(response.data))
+        this.props.setTodosKeys(Object.keys(response.data))
+    })
+  }
+
+  render() {
+    return (
+      <IonApp>
+        <IonReactRouter>
+          <IonTabs>
+            <IonRouterOutlet>
+              <Route path="/create" component={CreateContainer} exact={true} />
+              <Route path="/todos" component={TodosContainer} exact={true} />
+              <Route path="/" render={() => <Redirect to="/todos" />} exact={true} />
+            </IonRouterOutlet>
+            <IonTabBar slot="bottom">
+              <IonTabButton tab="create" href="/create">
+                <IonIcon icon={addCircle} />
+                <IonLabel>Create</IonLabel>
+              </IonTabButton>
+              <IonTabButton tab="todos" href="/todos">
+                <IonIcon icon={list} />
+                <IonLabel>All Todos</IonLabel>
+              </IonTabButton>
+            </IonTabBar>
+          </IonTabs>
+        </IonReactRouter>
+      </IonApp>
+    )
+  }
+}
+
+let mapStateToProps = (state: AppStateType) => {
+  return {
+      todos: state.todosState.todos
+  }
+}
+
+export default connect( mapStateToProps, { setTodos, setTodosKeys })(App);
